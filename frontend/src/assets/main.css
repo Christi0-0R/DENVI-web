@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@theme {
+  --color-denvi-naranja: #ffb774;
+  --color-denvi-amarillo: #ffdf8e;
+  --color-denvi-aqua: #80dee1;
+  --color-denvi-morado: #9a79db;
+}
