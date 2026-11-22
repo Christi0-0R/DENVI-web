@@ -27,7 +27,7 @@ async function abrir(i) {
         <span class="rounded-lg bg-mor/15 px-4 py-1.5 font-titulo font-bold tracking-widest text-mor">APRENDE DENVI</span>
         <h1 class="mt-4 font-titulo text-7xl font-bold">Tutoriales</h1>
         <p class="mt-4 max-w-2xl text-xl text-noche/70">
-          Texto de qué es la página de tutoriales: aquí aprenderás DENVI paso a paso, desde lo básico hasta crear tus propios escenarios.
+          Aquí aprenderás DENVI paso a paso, desde lo básico hasta crear tus propios escenarios.
         </p>
 
         <div class="mt-8 grid max-w-2xl gap-5 sm:grid-cols-2">

@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Home, Github, Play, Menu } from 'lucide-vue-next'
 
-const githubUrl = 'https://github.com/TU_USUARIO/denvi-web'
+const githubUrl = 'https://github.com/Christi0-0R/denvi-web'
 const route = useRoute()
 const abierto = ref(false)
 const activa = ref('inicio')

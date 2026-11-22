@@ -2,7 +2,7 @@ import { BookOpen, Box, Equal, Calculator, GitBranch, Repeat, Keyboard, Braces, 
 
 export const temas = [
   { id: 'intro', titulo: 'Introducción y sintaxis básica', icono: BookOpen, color: 'text-pri bg-crema',
-    texto: 'Explica qué es un programa en DENVI y cómo se escribe.',
+    texto: '...',
     ejemplos: [
       { nombre: 'Hola mundo', codigo: '// Hola mundo en DENVI\n' },
       { nombre: 'Comentarios', codigo: '// Esto es un comentario\n' },
