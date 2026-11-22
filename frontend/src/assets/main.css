@@ -1,8 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  --color-denvi-naranja: #ffb774;
-  --color-denvi-amarillo: #ffdf8e;
-  --color-denvi-aqua: #80dee1;
-  --color-denvi-morado: #9a79db;
+  --color-pri: #f5a623;
+  --color-caf: #663A1D;
+  --color-crema: #fff0b5;
+  --color-noche: #28213d;
+  --color-mor: #8a75db;
+  --color-aqu: #70d5cd;
+  --color-azu: #2f7fd6;
+  --color-lila: #f4f1fd;
+  --font-sans: "Space Grotesk", sans-serif;
+  --font-titulo: "Pixelify Sans", monospace;
+  --font-mono: "JetBrains Mono", monospace;
 }
+
+html { scroll-behavior: smooth; }
+section { scroll-margin-top: 100px; }
+body { @apply bg-lila text-noche; }
+.pixelado { image-rendering: pixelated; }
+
+/* cuadritos pixel decorativos */
+.pixeles {
+  position: absolute; width: 16px; height: 16px; background: transparent;
+  box-shadow:
+    0 0 #8a75db22, 16px 0 #8a75db33, 32px 16px #8a75db22, 0 32px #8a75db11,
+    48px 32px #8a75db22, 16px 48px #8a75db33, 64px 0 #8a75db11, 80px 48px #8a75db22;
+}
+
+@keyframes flotar { 50% { transform: translateY(-12px) } }
+.flotar { animation: flotar 4s ease-in-out infinite; }
+@keyframes brillo { 50% { opacity: .35; transform: scale(.8) } }
+.brillo { animation: brillo 2s ease-in-out infinite; }
+@keyframes parpadeo { 50% { opacity: 0 } }
+.cursor::after { content: "_"; animation: parpadeo 1s steps(1) infinite; }
