@@ -50,8 +50,8 @@ onUnmounted(() => observer?.disconnect())
         </li>
       </ul>
 
-      <RouterLink to="/editor"
-        class="ml-auto hidden items-center gap-2 rounded-xl bg-crema px-5 py-2.5 text-sm font-bold text-mor transition hover:-translate-y-0.5 hover:bg-pri hover:text-noche md:flex">
+      <RouterLink v-if="route.name !== 'editor'" to="/editor"
+        class="ml-auto hidden items-center gap-2 rounded-xl bg-crema px-5 py-2.5 text-sm font-bold text-noche transition hover:-translate-y-0.5 hover:bg-pri md:flex">
         <Play :size="15" fill="currentColor" /> Abrir editor
       </RouterLink>
 
@@ -61,7 +61,7 @@ onUnmounted(() => observer?.disconnect())
     <div v-if="abierto" class="mx-auto mt-2 flex max-w-7xl flex-col gap-3 rounded-2xl bg-noche p-4 text-white md:hidden" @click="abierto = false">
       <RouterLink v-for="s in secciones" :key="s.id" :to="{ path: '/', hash: '#' + s.id }">{{ s.label }}</RouterLink>
       <RouterLink to="/tutoriales">Tutoriales</RouterLink>
-      <RouterLink to="/editor" class="rounded-xl bg-pri py-2 text-center font-bold text-noche">Abrir editor</RouterLink>
+      <RouterLink v-if="route.name !== 'editor'" to="/editor" class="rounded-xl bg-pri py-2 text-center font-bold text-noche">Abrir editor</RouterLink>
     </div>
   </header>
 </template>

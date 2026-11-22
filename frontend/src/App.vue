@@ -6,5 +6,5 @@ import FooterBar from './components/layout/FooterBar.vue'
 <template>
   <NavBar />
   <main><RouterView /></main>
-  <FooterBar />
+  <FooterBar v-if="$route.name !== 'editor'" />
 </template>

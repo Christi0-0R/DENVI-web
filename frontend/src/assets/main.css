@@ -33,3 +33,15 @@ body { @apply bg-lila text-noche; }
 .brillo { animation: brillo 2s ease-in-out infinite; }
 @keyframes parpadeo { 50% { opacity: 0 } }
 .cursor::after { content: "_"; animation: parpadeo 1s steps(1) infinite; }
+
+
+.ed-oscuro {
+  --ed-bg: #28213d; --ed-panel: #1f1a31; --ed-term: #19152a; --ed-barra: #17132a;
+  --ed-borde: rgb(255 255 255 / .1); --ed-texto: #ffffff; --ed-suave: rgb(255 255 255 / .55);
+  --ed-codigo: #70d5cd; --ed-hover: rgb(255 255 255 / .08); --ed-activo: rgb(138 117 219 / .35);
+}
+.ed-claro {
+  --ed-bg: #ffffff; --ed-panel: #f4f1fd; --ed-term: #faf8ff; --ed-barra: #ece8fb;
+  --ed-borde: #e2ddf3; --ed-texto: #28213d; --ed-suave: #6b6585;
+  --ed-codigo: #5b45b8; --ed-hover: #ece8fb; --ed-activo: rgb(138 117 219 / .25);
+}
