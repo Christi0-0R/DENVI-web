@@ -27,7 +27,7 @@ onUnmounted(() => observer?.disconnect())
 
 <template>
   <header class="fixed inset-x-0 top-3 z-50 px-4">
-    <nav class="mx-auto flex max-w-7xl items-center gap-6 rounded-2xl bg-noche px-5 py-3 text-white shadow-lg">
+    <nav class="mx-auto flex max-w-7xl 2xl:max-w-[1600px] items-center gap-6 rounded-2xl bg-noche px-5 py-3 text-white shadow-lg">
       <RouterLink to="/" class="flex items-center gap-3">
         <div class="grid h-9 w-12 place-items-center rounded-md border border-dashed border-pri text-[10px] text-pri">logo</div>
         <span class="font-titulo text-2xl tracking-wider">DENVI</span>

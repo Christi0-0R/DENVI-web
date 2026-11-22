@@ -8,7 +8,7 @@ const pasos = [
 </script>
 
 <template>
-  <section id="instalacion" class="mx-auto max-w-7xl px-8 py-16">
+  <section id="instalacion" class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-8 py-16">
     <div class="flex items-end justify-between">
       <div>
         <h2 class="flex items-center gap-3 font-titulo text-5xl font-bold">

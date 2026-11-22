@@ -17,8 +17,8 @@ async function abrir(i) {
   <!-- PORTADA -->
   <section class="relative overflow-hidden pt-36 pb-16">
     <div class="pixeles right-20 top-32"></div>
-    <div class="mx-auto grid max-w-7xl items-center gap-12 px-8 lg:grid-cols-[auto_1fr]">
-      <!-- AQUÍ VA TU DIBUJO: mascota-tutoriales.png -->
+    <div class="mx-auto grid max-w-7xl 2xl:max-w-[1600px] items-center gap-12 px-8 lg:grid-cols-[auto_1fr]">
+      <!-- DIBUJOO mascota-tutoriales.png -->
       <div class="flotar grid h-72 w-64 place-items-center rounded-2xl border-2 border-dashed border-pri text-sm text-pri">
         mascota-tutoriales.png
       </div>
@@ -52,7 +52,7 @@ async function abrir(i) {
 
   <!-- DOCUMENTACIÓN -->
   <section id="documentacion" class="bg-white/60 py-20">
-    <div class="mx-auto max-w-7xl px-8">
+    <div class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-8">
       <h2 class="flex items-center gap-3 font-titulo text-5xl font-bold">
         <BookOpen class="text-pri" :size="38" /> Documentación
       </h2>

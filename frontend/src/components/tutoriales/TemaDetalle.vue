@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Play } from 'lucide-vue-next'
 import { useEditorStore } from '../../stores/editor'
@@ -9,6 +10,19 @@ const emit = defineEmits(['cerrar'])
 const router = useRouter()
 const editor = useEditorStore()
 const actual = ref(0)
+
+const parrafos = computed(() => props.tema.texto.split('\n\n'))
+const corte = computed(() => {
+  const total = props.tema.texto.length
+  let suma = 0
+  for (let i = 0; i < parrafos.value.length; i++) {
+    suma += parrafos.value[i].length
+    if (suma >= total * 0.6) return i + 1
+  }
+  return parrafos.value.length
+})
+const izquierda = computed(() => parrafos.value.slice(0, corte.value).join('\n\n'))
+const derecha = computed(() => parrafos.value.slice(corte.value).join('\n\n'))
 
 watch(() => props.tema, () => { actual.value = 0 })
 
@@ -20,28 +34,27 @@ function probar() {
 const conEsc = (e) => { if (e.key === 'Escape') emit('cerrar') }
 onMounted(() => window.addEventListener('keydown', conEsc))
 onUnmounted(() => window.removeEventListener('keydown', conEsc))
+
 </script>
 
 
-
-
-
-
 <template>
-  <article class="col-span-full grid scroll-mt-28 gap-8 rounded-3xl border-2 border-pri bg-white p-8 shadow-xl animate-[abrir_.3s_ease-out] lg:grid-cols-[1fr_1.3fr]">
-
+  <article class="col-span-full grid scroll-mt-28 items-start gap-12 rounded-3xl border-2 border-pri bg-white p-8 shadow-xl animate-[abrir_.3s_ease-out] lg:grid-cols-2">
+    <!-- TEXTO DE ARRIBA -->
     <div>
       <button class="flex items-center gap-2 text-sm font-bold text-mor hover:underline" @click="emit('cerrar')">
         <ArrowLeft :size="18" /> Volver a los temas
       </button>
       <p class="mt-6 font-titulo text-lg text-pri">TEMA {{ numero }}</p>
       <h2 class="font-titulo text-4xl font-bold leading-tight">{{ tema.titulo }}</h2>
-      <p class="mt-5 whitespace-pre-line text-lg leading-relaxed text-noche/75">{{ tema.texto }}</p>
+      <p class="mt-5 whitespace-pre-line text-lg leading-relaxed text-noche/75">{{ izquierda }}</p>
     </div>
 
-    <div>
+    <!-- EJEMPLO, flota a la derecha -->
+    <!-- <div class="mb-8 lg:float-right lg:ml-10 lg:w-[55%]"> -->
+    <div class="w-full">
       <p class="font-bold">Ejemplo</p>
-      <div class="mt-3 flex overflow-hidden rounded-2xl bg-noche">
+      <div class="mt-3 flex overflow-hidden rounded-2xl bg-noche w-full">
         <div class="flex flex-1 flex-col">
           <div class="flex items-center gap-2 border-b border-white/10 px-4 py-3">
             <span class="h-3 w-3 rounded-full bg-red-400"></span>
@@ -66,6 +79,7 @@ onUnmounted(() => window.removeEventListener('keydown', conEsc))
           </li>
         </ul>
       </div>
+      <p v-if="derecha" class="mt-8 whitespace-pre-line text-lg leading-relaxed text-noche/75">{{ derecha }}</p>
     </div>
 
   </article>

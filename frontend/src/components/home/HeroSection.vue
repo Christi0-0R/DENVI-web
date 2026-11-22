@@ -8,7 +8,7 @@ import { Play, BookOpen, Sparkles, MousePointer2 } from 'lucide-vue-next'
     <div class="pixeles right-24 top-28"></div>
     <div class="pixeles bottom-10 left-1/2"></div>
 
-    <div class="relative mx-auto grid max-w-7xl items-center gap-12 px-8 lg:grid-cols-2">
+    <div class="relative mx-auto grid max-w-7xl 2xl:max-w-[1600px] items-center gap-12 px-8 lg:grid-cols-2">
       <div class="relative">
         <span class="inline-flex items-center gap-2 rounded-lg bg-mor/15 px-4 py-1.5 font-bold text-noche">
           <Sparkles :size="16" class="text-mor" /> Lenguaje para crear juegos
