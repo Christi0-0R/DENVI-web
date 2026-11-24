@@ -1,0 +1,102 @@
+Esqueleto Principal --> {
+    &a(ent) := 10;
+    &b(ent) := 5;
+    &c(ent) := 2;
+
+    ::: Expresiones aritméticas
+    ImpCons(&a + &b);
+    ImpCons(&a - &b);
+    ImpCons(&a * &b);
+    ImpCons(&a / &b);
+    ImpCons(&a % &b);
+
+    ::: Precedencia de operadores
+    ImpCons(&a + &b * &c);
+    ImpCons((&a + &b) * &c);
+
+    ::: Operadores relacionales
+    ImpCons(&a > &b);
+    ImpCons(&a < &b);
+    ImpCons(&a => &b);
+    ImpCons(&a =< &b);
+    ImpCons(&a == &b);
+    ImpCons(&a != &b);
+
+    ::: Operadores lógicos
+    ImpCons(verdadero ^ falso);
+    ImpCons(verdadero || falso);
+    ImpCons(!verdadero);
+
+    ::: Operadores unarios
+    ImpCons(-&a);
+    ImpCons(+&b);
+
+    ::: Expresiones combinadas
+    ImpCons((&a > &b) ^ (&b < &c));
+    ImpCons((&a + &b) == 15);
+    ImpCons(!(&a == &b));
+
+    ImpConsSl("");
+
+    ::: ===== Decision: ev / evalt / alt =====
+
+    ::: Entra al ev
+    ev( (&a > &b) ? { ImpConsSl("ev: a es mayor que b"); } );
+
+    ::: Entra al evalt
+    ev( (&a < &b) ? { ImpConsSl("no deberia salir"); }
+        -> evalt (&a == 10) ? { ImpConsSl("evalt: a vale 10"); } );
+
+    ::: Entra al alt
+    ev( (&c > 100) ? { ImpConsSl("no deberia salir"); }
+        -> evalt (&c > 50) ? { ImpConsSl("no deberia salir"); }
+        -> alt { ImpConsSl("alt: c es chico"); } );
+
+    ::: Ninguna se cumple y no hay alt (no imprime nada)
+    ev( (&a == 0) ? { ImpConsSl("no deberia salir"); } );
+
+    ::: alt con IGNOR
+    ev( (falso) ? { ImpConsSl("no deberia salir"); } -> alt { IGNOR; } );
+
+    ::: ===== Ciclos: rep =====
+
+    ::: rep con declaracion e incremento ++
+    rep( (&i(ent) := 1) -> (&i =< 3) ? { ImpConsSl("rep ++ : i = " -> &i); } : ++ );
+
+    ::: rep con declaracion e incremento con paso +?(2)
+    rep( (&p(ent) := 0) -> (&p < 10) ? { ImpConsSl("rep +?(2) : p = " -> &p); } : +?(2) );
+
+    ::: rep con asignacion y decremento con paso -?(3, &j)
+    &j(ent) := 0;
+    rep( (&j := 10) -> (&j > 0) ? { ImpConsSl("rep -?(3) : j = " -> &j); } : -?(3, &j) );
+
+    ::: rep solo con la variable (ya existe) e incremento ++(&k)
+    &k(ent) := 0;
+    rep( (&k) -> (&k < 3) ? { ImpConsSl("rep ++(&k) : k = " -> &k); } : ++(&k) );
+
+    ::: rep con decimales
+    rep( (&d(dec) := 0.0) -> (&d < 2.0) ? { ImpConsSl("rep dec : d = " -> &d); } : +?(0.5) );
+
+    ::: rep que no da ninguna vuelta
+    rep( (&z(ent) := 5) -> (&z < 0) ? { ImpConsSl("no deberia salir"); } : ++ );
+
+    ::: ev dentro de rep (par / impar)
+    rep( (&n(ent) := 1) -> (&n =< 5) ? {
+        ev( (&n % 2 == 0) ? { ImpConsSl(&n -> " es par"); }
+            -> alt { ImpConsSl(&n -> " es impar"); } );
+    } : ++ );
+
+    ::: ===== Asignacion =====
+    &a := &a + 1;
+    ImpConsSl("a := a + 1 -> " -> &a);
+
+    &b := ++;
+    ImpConsSl("b := ++ -> " -> &b);
+
+    &c := +?(3);
+    ImpConsSl("c := +?(3) -> " -> &c);
+
+    &d := 7;
+    ImpConsSl("d(dec) := 7 -> " -> &d);
+
+} ;

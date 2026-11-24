@@ -1,0 +1,22 @@
+Esqueleto Principal --> {
+    &a(ent) := 10;
+    &b(ent) := 5;
+    &c(ent) := 2;
+    
+    ImpConsSl("Hola desde DENVI");
+
+    &numero(ent) := 10;
+
+
+    ImpConsSl("Numero: " -> &numero);
+
+    ev( (&a > &b) ? { ImpConsSl("ev: a es mayor que b"); } );
+
+    rep( (&n(ent) := 1) -> (&n =< 5) ? {
+        ev((&n % 2 == 0)? {
+            ImpConsSl(&n -> " es par");
+        } -> alt {
+            ImpConsSl(&n -> " es impar");
+        });
+    } : ++ );
+};

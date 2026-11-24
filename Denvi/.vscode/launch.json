@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "DenviApiApplication",
+      "request": "launch",
+      "mainClass": "com.denvi.DenviApiApplication",
+      "projectName": "denvi"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
+      "mainClass": "com.denvi.Main",
+      "projectName": "denvi"
+    },
+    {
+      "name": "Debug denvi",
+      "type": "antlr-debug",
+      "request": "launch",
+      "input": "src/test/resources/test.dnv",
+      "grammar": "src/main/antlr4/com/denvi/denvi.g4",
+      "startRule": "archivo",
+      "printParseTree": true,
+      "visualParseTree": true
+    }
+  ]
+}

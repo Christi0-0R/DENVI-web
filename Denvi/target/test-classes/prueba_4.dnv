@@ -1,0 +1,6 @@
+::: prueba_4: errores de estructura a proposito
+Esqueleto Principal --> {
+    ev( (&a > 3) ? { } alt { } );       ::: error 1: falta -> antes de alt
+    Nivel bosque -> (() { IGNOR; });    ::: error 2: el nivel empieza con minuscula
+    Viajar(cueva);                      ::: error 3: el destino empieza con minuscula
+};

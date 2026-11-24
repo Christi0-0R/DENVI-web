@@ -1,0 +1,6 @@
+::: prueba_3: errores lexicos y de cierre a proposito
+Esqueleto Principal --> {
+    &a(ent) = 5;           ::: error 1: la asignacion es :=
+    &r(boo):=&a >= 3;      ::: error 2: el mayor o igual es =>
+    &b(ent):=1             ::: error 3: falta ;
+};
