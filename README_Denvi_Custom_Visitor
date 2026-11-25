@@ -1,0 +1,312 @@
+# `denviCustomVisitor`: el cerebro de DENVI
+
+> Esta es la clase donde **el lenguaje cobra vida**. Todo lo demás (la API, el WebSocket, el parser) existe para llegar hasta aquí o para mostrar lo que aquí pasa.
+
+---
+
+## 1. La idea en una analogía
+
+Imagina que el programa DENVI es una **receta escrita**, y que ANTLR ya la convirtió en un **índice con jerarquía**: "Receta → Pasos → Paso 3 → Batir → Huevos".
+
+`denviCustomVisitor` es **el cocinero que recorre ese índice de arriba abajo y va haciendo lo que dice cada punto**. Cada vez que llega a un tipo de punto (una declaración, un `ev`, una suma, una llamada a función...) hay un método que sabe qué hacer con él. Esos métodos se llaman `visitXxx`, uno por cada regla de la gramática.
+
+Y como cada paso puede producir un resultado (el valor de una suma, lo que devolvió una función), todos esos métodos devuelven un **`Simbolo`**: una cajita con un valor y su tipo.
+
+A este estilo de intérprete se le llama **tree-walking** ("caminar el árbol"): no compila nada, ejecuta directamente lo que ve en el árbol.
+
+```
+parser.archivo()  ──►  ArchivoContext (el árbol)  ──►  visitor.visit(arbol)
+                                                          │
+                          visitArchivo ─► visitArchprin  (programa principal)
+                                       └► visitArchclase (archivo de clases)
+                                               │
+                           imports ──► cargarArchivo()
+                                               │
+                              visitClasprin ─► registra los métodos de Principal
+                                               │
+                                    visitProg ─► registra las funciones
+                                               └► ejecuta cada instrucción (lincod)
+```
+
+---
+
+## 2. Un detalle clave: primero se **registra**, después se **ejecuta**
+
+El visitor trabaja en dos tiempos, y entenderlo explica casi todo lo demás:
+
+1. **Registro:** se leen las definiciones (`Accion` = función, `MetaAccion` = método, `Esqueleto` = clase, `Nivel`) y simplemente se guardan en tablas. Aún no se ejecutan.
+2. **Ejecución:** se recorren las instrucciones del programa y, cuando una llama a una función o crea un objeto, **entonces** se ejecuta el cuerpo guardado.
+
+Gracias a eso, puedes **llamar a una función antes de que aparezca escrita** en el archivo, y los niveles pueden declararse en cualquier orden.
+
+---
+
+## 3. Las piezas de apoyo (clases internas)
+
+Dentro del visitor hay varias clases pequeñas que modelan las "cosas" del lenguaje:
+
+**`Ambito`: un piso de variables.**
+Cada ambiente guarda sus variables en un `HashMap` y conoce a su **padre**. Para buscar una variable, mira primero en su piso; si no está, sube al padre, y así hasta llegar al global. Así funciona el alcance: un bloque `ev` o `rep` crea un piso nuevo, y sus variables mueren al salir.
+
+**`Coleccion`: arreglos y listas.**
+Guarda el tipo de los elementos y la lista de valores, más una bandera que dice si es lista o arreglo. Tiene dos estados "incompletos" a propósito: *tipo `null`* (es un literal que aún no se validó) y *elementos `null`* (se declaró pero sin valor).
+
+**`Objeto`: una instancia de una clase.**
+Es lo que crea `iniciar(...)`. Guarda su clase, sus atributos (en orden) y, para la parte de juego, su ubicación: nivel, zona y coordenadas `x`, `y`.
+
+**`Suceso`: un evento vigilado.**
+Guarda qué condición se vigila, en qué ámbito se declaró, qué objeto era el dueño (para poder usar `@esto`) y su estado actual (¿estaba activo ya?, ¿dónde estaba antes?).
+
+**`PortalPendiente`: una promesa por validar.**
+Cuando declaras un portal hacia un nivel que aún no existe, no se rechaza de inmediato; se anota y se comprueba **al final del programa**.
+
+**`Retorno`: la excepción que no es un error.**
+Es un truco: cuando el programa ejecuta `(valor).retornar`, no hay forma sencilla de "salirse" de varios métodos Java anidados. Así que se **lanza una excepción** con el valor, y la atrapa quien ejecutó la función. Está construida sin traza (`super(null, null, false, false)`) para que sea barata, porque se usa muy seguido.
+
+**`ErrorDenvi`**: un error semántico genérico que extiende `DenviException.Semantico`.
+
+---
+
+## 4. Lo que el visitor recuerda mientras corre
+
+Piénsalo como la "memoria de trabajo" del cocinero.
+
+**Tablas de definiciones** (se llenan en la fase de registro):
+`tablaFunciones`, `metodosPrincipal`, `tablaClases`, `tablaNiveles` y `portales` (el mapa de a qué niveles se puede ir desde cada nivel).
+
+**Dónde estoy parado ahora:**
+- `ambito`: el piso de variables actual (empieza en `tablaSimbolos`, el programa principal).
+- `ambitoGlobal`: las variables declaradas con `Mundo`, visibles desde todos lados.
+- `objetoActual`: de quién es el método que se ejecuta (esto hace posible `@esto`).
+- `funcionesLocales`: funciones definidas dentro del método actual.
+- `profundidad`: cuántas llamadas anidadas llevo (tope: 300, para frenar recursiones infinitas).
+
+**El mundo del juego:**
+`nivelActual`, `zonaActual`, `enMundo` (los objetos que ya fueron colocados), `sucesos` (los eventos vigilados) y los controles para que los sucesos no se disparen entre sí sin fin (`revisandoSucesos`, `revisionPendiente`, `MAX_PASADAS = 100`).
+
+**Entrada y salida:**
+`out`, `entrada` (un `Scanner`) y `mostrarPrompt`. Hay tres constructores porque cada capa lo usa distinto: sin parámetros (consola, con prompt), con `(out, entrada)` (REST, sin prompt) y el completo (WebSocket, con prompt). También `directorioBase`, la carpeta desde donde se resuelven los `Import`.
+
+Y dos constantes que merecen mención: `CATALOGO_SUCESOS` (los tipos de suceso permitidos: `Choque`, `Toma`, `Ingreso`, `Egreso`) y `CLASE_RECOMPENSA` (el nombre de la clase que cuenta como "recompensa").
+
+---
+
+## 5. Archivos e importaciones
+
+Un programa puede importar clases de otros archivos. El proceso, en `cargarArchivo`, es:
+
+1. Calcula la ruta real del archivo a partir de `directorioBase`.
+2. Si ya fue importado antes (`importados`), **no lo vuelve a cargar**.
+3. Si no existe, lanza `ImportacionInvalida`.
+4. Lo parsea con su propio lexer y parser (con `DenviErrorListener`).
+5. Si resulta tener `Esqueleto Principal`, lo rechaza: **solo se pueden importar archivos de clases**.
+6. Cambia temporalmente `directorioBase` a la carpeta de ese archivo (para que sus propios `Import` relativos funcionen) y la restaura al terminar, pase lo que pase (`finally`).
+
+Para archivos de clases (`visitArchclase`), además se **valida la herencia** de cada clase: que el padre exista, que no haya ciclos y que no se repitan atributos.
+
+---
+
+## 6. Funciones, métodos y la regla de "quién ve qué"
+
+### Registro
+`visitEscfuncion`, `visitEscclase` y `visitEscmetodo` solo guardan la definición, comprobando que no haya duplicados y que los parámetros no se repitan. `visitProg` registra **todas** las funciones primero y luego ejecuta las instrucciones.
+
+### Cuando se llama a algo
+En `visitLlamfun`, para `Nombre(args)`, el visitor busca en este orden:
+
+1. una **función local** del método actual,
+2. una **función global**,
+3. un **método del objeto actual** (como si fuera `@esto.Nombre`),
+4. un **método de `Principal`**,
+5. y si no encuentra nada, lanza `SimboloNoEncontrado`.
+
+`visitAccmet` cubre las llamadas con punto: `obj.Metodo()`, `@esto.Metodo()` o encadenadas (`obj.&atributo.Metodo()`).
+
+### Pasar argumentos
+`asignarParametros` revisa que la **cantidad** coincida y que cada **tipo** sea el correcto. Si el parámetro es un objeto, comprueba que sea de esa clase **o de una hija**. Los tipos simples permiten que un `ent` se convierta en `dec`. Un detalle importante: el parámetro recibe una **copia**, así que no hereda "constante" ni "global" del argumento original.
+
+### Quién ve qué variables
+
+| Contexto | Ve las variables del que llama? | Ve los atributos del objeto? |
+|---|---|---|
+| Función global | **No** (parte del ámbito global) | No |
+| Método de una clase | No | **Sí**, como si fueran variables normales |
+| Función local de un método | No | **Sí** (conserva `@esto`) |
+| Bloque (`ev`, `rep`...) | **Sí** (es un piso hijo) | Depende de dónde esté |
+
+### La rutina que ejecuta cualquier cuerpo
+`ejecutarCuerpo` es la pieza que hace todo lo anterior seguro. Paso a paso:
+
+1. Si la profundidad ya llegó a 300, lanza `DesbordamientoDePila`.
+2. **Guarda** el ámbito, el objeto actual y las funciones locales.
+3. **Cambia** a los nuevos y sube la profundidad.
+4. Ejecuta el cuerpo.
+   - Si termina sin retornar, devuelve un `Simbolo` de tipo `VACIO`.
+   - Si lanzó `Retorno`, devuelve ese valor.
+   - Si lanzó una `DenviException`, **le agrega una línea a la traza** (`at Clase.metodo(archivo:línea)`) y la relanza.
+   - Si Java lanza `StackOverflowError`, lo traduce a un error del lenguaje.
+5. En el `finally`, **restaura todo** como estaba.
+
+---
+
+## 7. Objetos y herencia
+
+**Crear un objeto:** `Clase obj := iniciar(args)` (`visitDeclaobj`). Verifica que la clase exista, reúne **todos los atributos** (los del padre más lejano primero, y los de la clase al final) y asigna los argumentos en ese orden.
+
+**Usar un objeto:** `exigirObjeto` se asegura de que lo que tienes realmente sea un objeto. Si es `nulo`, lanza `ObjetoNulo` (el equivalente a un `NullPointerException`); si viene de una llamada sin retorno, `SinValorDeRetorno`; si es otro tipo, `TipoIncompatible`.
+
+**Herencia (`ObtieneDe`):**
+- `cadenaDeClases` arma la lista `[Hija, Padre, Abuelo...]` y detecta **ciclos** (`HerenciaInvalida`).
+- `atributosDe` junta los atributos de toda la cadena.
+- `buscarMetodo` sube por la cadena hasta encontrar el método, así que **una clase hija puede sobrescribir** el método de su padre: gana el primero que se encuentra.
+- `esSubclase` responde "¿esta clase es, o hereda de, esa otra?". Se usa al pasar parámetros, al asignar objetos y en el suceso `Toma`.
+
+---
+
+## 8. Utilidades que se usan por todos lados
+
+| Utilidad | Para qué sirve |
+|---|---|
+| `esNumero`, `esComparable` | Número es `ENTERO` o `DECIMAL`. Se pueden ordenar dos números o dos tiempos. |
+| `texto(Simbolo)` | Convierte un valor a texto para imprimir o concatenar (`verdadero`/`falso`, `nulo`, tiempos como `[1:05:30]`...). |
+| `ajustarTipo` | Comprueba el tipo esperado y permite subir `ent` a `dec`. |
+| `copiarMeta` | Al reemplazar un valor, conserva si era constante, global, de qué clase era, etc. |
+| `exigirModificable` | Impide cambiar constantes. |
+| `obtenerVariable` | Busca por ámbitos; falla si no existe o no tiene valor. |
+| `tablaDe` | Encuentra en qué ámbito vive una variable para poder modificarla. |
+| `exigirNoDeclarada` | Evita duplicar un nombre en el piso actual (en un piso hijo sí se puede "tapar" el nombre). |
+| `sinValor` | Variable declarada pero sin asignar. |
+| `ejecutarBloqueLocal` | Ejecuta un bloque en un piso nuevo. |
+
+---
+
+## 9. Variables, constantes y asignaciones
+
+- **Declarar:** `&x(ent);` crea la variable **sin valor**. Con `&x(ent) := 5;` se crea con valor, validando el tipo. Las constantes llevan `#` (`#pi(dec) := 3.14;`) y quedan marcadas como no modificables.
+- **Asignar:** `&x := ...;` y `obj.&atributo := ...;` terminan los dos en `asignarEn`, que decide qué hacer según el caso:
+  - si es una **colección**, valida elemento por elemento;
+  - si es de tipo **objeto**, acepta un objeto de esa clase (o hija) o `nulo`;
+  - si es un **tipo simple**, valida y convierte `ent → dec` cuando hace falta.
+- **Autoincremento** (`++`, `--`, `+?`, `-?`): también pasa por aquí o por `incrementar`.
+- **Variables globales (`Mundo`):** se declaran primero en un ámbito temporal (para que la expresión inicial pueda ver las variables locales) y después se **mudan** al ámbito global, marcadas como globales. `Mundo &x := ...` asigna a una global ya existente.
+
+---
+
+## 10. Arreglos y listas
+
+- `ar` declara arreglos y `lt` declara listas. Ambos pasan por `declararColeccion`.
+- Al asignar una colección se usa `validarColeccion`, que revisa que **todos los elementos tengan el tipo declarado** (los arreglos anidados se revisan recursivamente) y entrega una **copia**.
+- **Regla del lenguaje:** un arreglo puede contener otros arreglos; una **lista no puede contener otras colecciones** (`ColeccionInvalida`).
+- Los literales `[ ... ]` y `{ ... }` se construyen "sin validar" (tipo `null`) y se validan cuando se asignan a algo con tipo.
+
+---
+
+## 11. Entrada y salida
+
+- **`ImpCons`** imprime sin salto de línea y **`ImpConsSl`** con salto. Ambos arman el texto con `construirSalida`, que se niega a imprimir algo sin valor.
+- **`ObtDatos(tipo : &x)`** lee una línea del `Scanner`, la convierte al tipo pedido y la guarda en la variable. Si la variable no existe, la crea. Si existe, valida que no sea constante y que coincida el tipo. Si `mostrarPrompt` está activo, antes imprime algo como `x (ent): `.
+- **`leerComo`** sabe convertir texto a `ent`, `dec`, `cad`, `car`, `boo`, `tm` (acepta `1:30` o `[1:30]`) y `nl`. Si el texto no sirve, lanza `EntradaInvalida`.
+- **`visitLincod`** (cada línea de código) tiene una tarea silenciosa pero vital: **revisa si el hilo fue interrumpido**. Es lo que permite cancelar programas que tardan demasiado.
+
+---
+
+## 12. Niveles, zonas, portales y el mundo
+
+Esta es la parte "videojuego" del lenguaje.
+
+- Un **nivel** (`Nivel`) se registra al declararse, pero su cuerpo **no se ejecuta** hasta que alguien hace `Viajar`.
+- Un **portal** conecta niveles. Se puede declarar dentro del nivel o por fuera (`Nivel.Portal --> destino`). Cada destino se anota en `portalesPendientes`, y **al terminar el programa** `validarPortales` comprueba que todos existan.
+- **`Viajar(Nivel)`:** valida que el nivel exista y que haya un portal desde el nivel actual (el primer viaje es libre). Luego ejecuta el escenario y revisa los sucesos.
+- **`ejecutarEscenario`:** crea un piso nuevo, ejecuta las **propiedades** del nivel o zona y después su cuerpo; al final restaura el ámbito y la zona.
+- **`Situar(obj -> (x, y) -> Nivel)`:** coloca el objeto en el mundo. Las coordenadas deben ser numéricas; si no indicas nivel, usa el actual (y la zona actual). Lo agrega a `enMundo`.
+- **`Retirar(obj)`:** lo saca del mundo.
+
+`Viajar`, `Situar` y `Retirar` **terminan avisando a los sucesos**, porque cualquiera de ellos puede cambiar el mundo y disparar algo.
+
+---
+
+## 13. Sucesos: el lenguaje reaccionando solo
+
+Un **suceso** es un bloque de código que se ejecuta **cuando algo pasa**, sin que lo llames. Hay dos formas:
+
+- **Corta:** `Suceso((obj, Tipo) -> { ... })`, con `Tipo` = `Choque`, `Toma`, `Ingreso` o `Egreso`.
+- **General:** `Suceso((condicion) -> { ... })`, con cualquier expresión booleana.
+
+### Cómo funciona por dentro
+
+1. **Registro (`visitEscsuceso`).** Se valida el tipo y se guarda. Si el mismo suceso se vuelve a registrar (por ejemplo, porque se repitió un `Viajar` que re-ejecuta el nivel), **reemplaza al anterior** conservando su estado, para que no se duplique.
+2. **Revisión (`revisarSucesos`).** Se llama cada vez que el mundo cambia. Recorre todos los sucesos y dispara los que se cumplan. Si un suceso modifica el mundo (por ejemplo, hace otro `Situar`), pide **otra pasada**, hasta un máximo de 100 para no caer en un bucle infinito. La bandera `revisandoSucesos` evita que se anide una revisión dentro de otra.
+3. **Decisión (`debeDisparar`).** Aquí está la lógica fina:
+   - Una condición dispara **por flanco**: solo cuando pasa de falsa a verdadera, no mientras sigue siendo verdadera. Así un `Choque` no se repite en cada revisión.
+   - **`Ingreso`:** el objeto apareció en una ubicación distinta a la anterior.
+   - **`Egreso`:** el objeto salió de la ubicación donde estaba.
+   - **`Choque`:** otro objeto que **no** es recompensa está en la misma posición.
+   - **`Toma`:** hay una **recompensa** en la misma posición.
+4. **Ejecución (`disparar`).** Corre el cuerpo en un piso hijo del ámbito donde se declaró. Usar `retornar` dentro de un suceso es un error.
+
+---
+
+## 14. Condicionales y ciclos
+
+- **`ev` / `evalt` / `alt`** (`visitEscond`) son el `if` / `else if` / `else`. Solo se ejecuta la **primera** rama cuya condición sea verdadera. Las condiciones deben ser booleanas.
+- **`rep`** es el ciclo. Tiene dos variantes: una que **declara su propia variable** (que solo existe dentro del ciclo) y otra que usa una variable que **ya existe**.
+- **`ejecutarCiclo`** es un `while` con tres cuidados: evalúa la condición, **revisa si lo interrumpieron** en cada vuelta (protección contra ciclos infinitos) y ejecuta el cuerpo en un piso propio.
+- **`incrementar`** suma o resta un paso (1 si no se indica). Valida que no sea constante, que tenga valor y que sean números. Con `ent` usa `Math.addExact` / `subtractExact`, así que **un desbordamiento no pasa en silencio**, se convierte en un error.
+
+---
+
+## 15. Expresiones: la jerarquía de operadores
+
+La gramática organiza los operadores **por niveles de precedencia**, y el visitor tiene un método por nivel. De lo que se evalúa al final (menor precedencia) a lo que se evalúa primero:
+
+| Nivel | Método | Operadores | Detalles |
+|---|---|---|---|
+| 1 | `visitLogor` | `\|\|` | **Cortocircuito:** si el izquierdo ya es verdadero, no evalúa el derecho |
+| 2 | `visitLogand` | `^` | **Cortocircuito:** si el izquierdo es falso, no evalúa el derecho |
+| 3 | `visitLogig` | `==`, `!=` | Compara números por valor (`ent` con `dec` también), `nulo` por tipo |
+| 4 | `visitLogrel` | `<`, `>`, `=<`, `=>` | Solo números con números o tiempos con tiempos |
+| 5 | `visitLogar` | `+`, `-` | `+` con una cadena **concatena**; tiempo ± tiempo da tiempo |
+| 6 | `visitTermino` | `*`, `/`, `%` | Divide entre cero → error; controla desbordamiento |
+| 7 | `visitSimbun` | `!`, `-`, `+` (unarios) | Niega, cambia el signo, etc. |
+| 8 | `visitValp`, `visitBase`, `visitValsimple` | literales, variables, `@esto`, llamadas, paréntesis, `.miembro` | La parte "primaria" |
+
+Algunas reglas que conviene recordar:
+
+- Si **cualquiera** de los operandos es `dec`, el resultado es `dec`; si ambos son `ent`, es `ent` (con revisión de desbordamiento, incluyendo el caso raro de `MIN_VALUE / -1`).
+- **No se puede usar como valor** algo que no retorna nada (`exigirValor`).
+- Un tipo incompatible siempre produce un error claro con los dos tipos involucrados.
+
+---
+
+## 16. Literales
+
+`visitValor` / `crearValor` convierten el texto del código en `Simbolo`:
+
+- **Enteros:** si no caben en un `int`, `LiteralFueraDeRango`.
+- **Decimales, booleanos** (`verdadero` / `falso`), **cadenas, caracteres** (exactamente 1) y **nulo**.
+- **Tiempos** (`[mm:ss]` o `[hh:mm:ss]`): se guardan como **segundos enteros**, lo que permite sumarlos, restarlos y compararlos como números. Los campos vacíos cuentan como cero.
+- `desescapar` procesa `\n`, `\t` y `\r`; cualquier otro carácter precedido de `\` se toma literal (por ejemplo `\"`).
+
+---
+
+## 17. Cómo se reportan los errores desde aquí
+
+Cada error semántico recibe el **contexto del árbol** donde ocurrió. De ahí `DenviException` saca solo la línea, la columna, el archivo y el fragmento de código a subrayar. Además:
+
+- `ejecutarCuerpo` va **agregando frames** a la traza cada vez que el error sale de una función o método.
+- `visitProg` agrega el frame final `Principal.Main`.
+
+El detalle completo está en `03_excepciones_y_error_listener.md`.
+
+---
+
+## 18. Decisiones de diseño que vale la pena notar
+
+1. **Ámbitos encadenados:** una cadena de piso → padre explica de forma uniforme el alcance de variables en bloques, funciones, métodos y niveles.
+2. **Restaurar siempre en `finally`:** cada vez que el visitor cambia de contexto (ámbito, objeto, función local) lo restaura pase lo que pase, y así un error a mitad de camino no deja el intérprete "descuadrado".
+3. **Retorno por excepción ligera:** evita tener que propagar a mano un "ya retorné" por todos los métodos.
+4. **Defensas contra programas maliciosos o torpes:** límite de profundidad (300), captura de `StackOverflowError`, revisión de interrupciones en cada línea y ciclo, y tope de pasadas en sucesos.
+5. **Copias en vez de referencias:** parámetros y colecciones se copian al asignarse. (Los **objetos**, en cambio, se comparten por referencia, como en Java.)
+6. **Validación tardía de portales:** permite declarar los niveles en cualquier orden.
+7. **Sucesos extensibles:** para añadir un tipo nuevo basta agregarlo a `CATALOGO_SUCESOS` y a la lógica de `debeDisparar`.
+8. **El visitor no depende de la web:** recibe su salida y su entrada por constructor, así que el mismo intérprete sirve para consola, REST y WebSocket.
