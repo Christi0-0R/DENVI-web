@@ -139,6 +139,9 @@ async function copiar(texto) {
             <p class="mt-1.5 text-xs text-white/50">Salida esperada:</p>
             <pre v-if="c.esCodigo" class="mt-1 overflow-x-auto rounded-lg bg-black/30 px-3 py-2 font-mono text-xs leading-relaxed text-white/80">{{ c.salida }}</pre>
             <p v-else class="mt-1 rounded-lg bg-black/30 px-3 py-2 text-xs leading-relaxed text-white/80">{{ c.salida }}</p>
+            <p class="mt-3 rounded-lg bg-white/10 px-3 py-2 text-xs text-white/70">
+              Si al escribir <code class="font-mono text-pri">denvi</code> después de instalar marca error, cierra y vuelve a abrir la terminal.
+            </p>
           </div>
         </div>
       </article>
