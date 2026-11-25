@@ -15,9 +15,13 @@ import { Play, BookOpen, Sparkles, MousePointer2 } from 'lucide-vue-next'
         </span>
 
         <div class="relative mt-4">
+
           <div class="pointer-events-none absolute -left-8 top-6 h-40 w-[115%] -rotate-12 rounded-[50%] border-2 border-mor/50"></div>
+          
           <span class="brillo absolute -top-4 left-[78%] text-5xl text-pri">✦</span>
-          <h1 class="relative font-titulo text-[130px] font-bold leading-none tracking-wide text-noche xl:text-[150px]">DENVI</h1>
+          
+          <img src="/img/DENVI-LOGO.png" alt="Logo DENVI" class="h-67 w-auto" />
+
         </div>
 
         <p class="mt-4 max-w-xl text-2xl text-noche/80">
@@ -40,20 +44,31 @@ import { Play, BookOpen, Sparkles, MousePointer2 } from 'lucide-vue-next'
       </div>
 
       <div class="relative">
-        <div class="absolute inset-0 translate-x-5 translate-y-5 rounded-2xl bg-mor/25"></div>
-        <div class="relative overflow-hidden rounded-2xl border-4 border-noche bg-noche shadow-2xl">
+        
+        <!-- <div class="absolute inset-0 translate-x-5 translate-y-5 rounded-2xl bg-mor/25"></div> -->
+        
+        <!-- AQUÍ VA EL DIBUJO: hero-paisaje.png -->
+        <img src="/img/DENVI-1.png" alt="Logo DENVI" class="h-120 w-auto" />
+
+        <!-- <div class="relative overflow-hidden rounded-2xl border-4 border-noche bg-noche shadow-2xl">
           <div class="flex gap-2 px-4 py-3">
             <span class="h-3.5 w-3.5 rounded-full bg-red-400"></span>
             <span class="h-3.5 w-3.5 rounded-full bg-pri"></span>
             <span class="h-3.5 w-3.5 rounded-full bg-green-400"></span>
           </div>
-          <!-- AQUÍ VA TU DIBUJO: hero-paisaje.png -->
+          
+          
           <div class="grid aspect-[16/10] place-items-center bg-gradient-to-b from-azu/60 to-aqu/60 font-titulo text-xl text-white">
-            hero-paisaje.png
+
+            
+            
           </div>
-        </div>
-        <div class="font-titulo absolute -bottom-6 right-6 rotate-[-5deg] rounded-xl bg-noche px-5 py-3 font-mono text-lg text-white shadow-xl">
-          <span class="text-pri">Jugador</span>.<span class="text-aqu">saltar</span>()<span class="cursor"></span>
+
+        </div> -->
+
+
+        <div class="font-titulo absolute -bottom-8 right-30 rotate-[-5deg] rounded-xl bg-noche px-5 py-3 font-mono text-lg text-white shadow-xl">
+          <span class="text-pri">Jugador</span>.<span class="text-aqu">DENVI</span>()<span class="cursor"></span>
         </div>
         <MousePointer2 class="absolute -bottom-14 -right-4 text-noche" :size="44" fill="white" />
         <span class="brillo absolute -left-10 bottom-4 text-3xl text-mor">✦</span>

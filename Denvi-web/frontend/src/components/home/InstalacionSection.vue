@@ -53,7 +53,7 @@ async function copiar(texto) {
 </script>
 
 <template>
-  <section id="instalacion" class="mx-auto max-w-5xl px-8 py-16">
+  <section id="instalacion" class="mx-auto max-w-7xl 2xl:max-w-[1600px] px-8 py-16">
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h2 class="flex items-center gap-3 font-titulo text-4xl font-bold md:text-5xl">
@@ -147,7 +147,9 @@ async function copiar(texto) {
       </article>
 
       <article class="flex items-start gap-3 rounded-xl border border-noche/10 bg-white p-4">
+
         <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-noche/10 text-noche">
+
           <Trash2 :size="20" />
         </div>
         <div>

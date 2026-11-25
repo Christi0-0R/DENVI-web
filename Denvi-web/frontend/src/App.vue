@@ -10,3 +10,6 @@ import DialogoDenvi from './components/DialogoDenvi.vue'
   <FooterBar v-if="$route.name !== 'editor'" />
   <DialogoDenvi />
 </template>
+
+
+

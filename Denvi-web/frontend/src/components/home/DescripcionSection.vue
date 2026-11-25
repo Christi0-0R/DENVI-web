@@ -25,9 +25,8 @@ const features = [
           <strong class="text-noche">DENVI</strong>, «Desarrollo de Niveles de Videojuegos», es un lenguaje de dominio específico para diseñar niveles. Crea tus propios objetos con clases, colócalos en el escenario y decide cómo reaccionan con eventos y condiciones.
         </p>
         <!-- DIBUJITO.png -->
-        <div class="mt-8 grid h-40 w-40 place-items-center rounded-2xl border-2 border-dashed border-pri text-sm text-pri">
-          mascota-descripcion.png
-        </div>
+         <img src="/img/DENVI-2.png" alt="Logo DENVI" class="h-110 w-auto" />
+
         <span class="brillo absolute right-10 top-0 text-3xl text-mor">✦</span>
       </div>
 

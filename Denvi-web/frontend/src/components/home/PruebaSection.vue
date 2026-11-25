@@ -31,12 +31,18 @@ function abrirEditor() {
 
 <template>
   <section id="prueba" class="relative mx-auto max-w-7xl px-8 py-20">
-    <!-- AQUÍ VA TU DIBUJO: mascota-asomada.png -->
-    <div class="absolute right-16 top-8 grid h-20 w-28 place-items-center rounded-t-2xl border-2 border-dashed border-pri text-xs text-pri">mascota-asomada</div>
+    <!-- AQUÍ VA EL DIBUJO: mascota-asomada.png -->
+    
+    
+
+    <div class="absolute right-16 top-15 grid h-20 w-28 place-items-center rounded-t-2xl text-xs text-pri">
+      <img src="/img/DENVI-ICON.png" alt="Logo DENVI" class="h-20 w-auto" />
+    </div>
 
     <h2 class="flex items-center justify-center gap-3 font-titulo text-4xl font-bold">
       <span class="text-mor">&gt;_</span> Prueba <span class="text-pri">DENVI</span> aquí mismo
     </h2>
+    
 
     <div class="relative mt-10 overflow-hidden rounded-2xl bg-noche shadow-2xl">
       <div class="flex items-center gap-2 border-b border-white/10 px-4">

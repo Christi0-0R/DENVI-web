@@ -35,9 +35,7 @@ async function irA(i) {
     <div class="pixeles right-20 top-32"></div>
     <div class="mx-auto grid max-w-7xl 2xl:max-w-[1600px] items-center gap-12 px-8 lg:grid-cols-[auto_1fr]">
       <!-- DIBUJOO mascota-tutoriales.png -->
-      <div class="flotar grid h-72 w-64 place-items-center rounded-2xl border-2 border-dashed border-pri text-sm text-pri">
-        mascota-tutoriales.png
-      </div>
+      <img src="/img/DENVI-3.png" alt="Logo DENVI" class="h-100 w-auto" />
 
       <div>
         <span class="rounded-lg bg-mor/15 px-4 py-1.5 font-titulo font-bold tracking-widest text-mor">APRENDE DENVI</span>

@@ -16,7 +16,7 @@ const sacudir = ref(null)   // índice del nivel bloqueado que se sacude
 // Si tienes el dibujo de la mascota, ponlo en /public y pon aquí su ruta, ej. '/mascota.png'.
 // Con null se usa el monito dibujado en MonitoDenvi.vue.
 // (copia mascota.png a la carpeta public/ de tu proyecto)
-const MASCOTA = '/mascota.png'
+const MASCOTA = '/img/DENVI-1.png'
 
 // Une cada nivel con los datos de su tema (título e icono)
 const lista = computed(() => niveles.map((n) => {
@@ -97,7 +97,7 @@ async function reiniciar() {
     </div>
 
     <!-- MAPA -->
-    <div class="relative pb-16 pt-12">
+    <div class="relative pb-16 pt-18">
       <!-- caminito: detrás de los niveles, de uno al siguiente sin cortes -->
       <svg aria-hidden="true" class="pointer-events-none absolute overflow-visible"
         :style="{ top: '48px', left: `calc(50% - ${ANCHO / 2}px)` }"
