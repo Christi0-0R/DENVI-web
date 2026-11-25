@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { Download, Archive, MousePointerClick, Terminal, Sparkles, Trash2, Copy, Check, FolderOpen, ShieldAlert } from 'lucide-vue-next'
 
-const urlDescarga = 'https://github.com/Christi0-0R/DENVI-web/raw/main/windows.zip'
+const urlDescarga = 'https://github.com/Christi0-0R/DENVI-web/raw/main/DENVI-Windows.zip'
 
 const pasos = [
   { icono: Download, titulo: 'Descarga', texto: 'Baja el archivo .zip de DENVI.', color: 'text-mor bg-mor/15' },
